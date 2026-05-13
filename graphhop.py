@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 class HopfieldMemory:
     def __init__(self, n_neurons):
