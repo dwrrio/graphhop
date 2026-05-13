@@ -1,6 +1,14 @@
 # Test 5 * 5 patterns with different changes. 
 
-from graphhop import *
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from hopfield_memory import *
+
 
 def pattern_to_image(pattern, size=5):
     return pattern.reshape(size, size)
