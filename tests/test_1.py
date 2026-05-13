@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from graphhop import *
+from hopfield_memory import *
 
 def pattern_to_image(pattern, size=5):
     return pattern.reshape(size, size)
