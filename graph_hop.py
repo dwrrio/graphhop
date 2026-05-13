@@ -1,52 +1,70 @@
 import networkx as nx
+import numpy as np
 from node_memory import *
 
 class GraphHop:
-  def __init__(self):
-    self.graph = nx.Graph()
-    self.memories = {}  # node_id <-> NodeMemory
+    def __init__(self):
+        self.graph = nx.Graph()
+        self.memories = {}  # node_id <-> NodeMemory
 
+    def add_node(self, node_id, feature_vector, feature_dim=None):
+        self.graph.add_node(node_id, feature=feature_vector)
+        if feature_dim is None:
+            feature_dim = len(feature_vector)
+        self.memories[node_id] = NodeMemory(feature_dim)
 
-  def add_node(self, node_id, feature_vector, feature_dim = None):
-    self.graph.add_node(node_id, feature=feature_vector)
-    if feature_dim is None:
-      feature_dim = len(feature_vector)
-    self.memories[node_id] = NodeMemory(feature_dim)
+    def add_edge(self, node1, node2):
+        
+        if node1 not in self.graph:
+            return
+        
+        if node2 not in self.graph:
+            return
+        
+        self.graph.add_edge(node1, node2)
+        feat1 = self.graph.nodes[node1]['feature']
+        feat2 = self.graph.nodes[node2]['feature']
+        self.memories[node1].store(feat2)
+        self.memories[node2].store(feat1)
 
+    def navigate(self, start_node, cue, steps=3):
+        path = [start_node]
+        current = start_node
+        current_cue = np.array(cue)
 
-  def add_edge(self, node1, node2):
-    feat1 = self.graph.nodes[node1]['feature']
-    feat2 = self.graph.nodes[node2]['feature']
+        for _ in range(steps):
+            recalled = self.memories[current].recall(current_cue)
+            neighbors = list(self.graph.neighbors(current))
 
-    self.memories[node1].store(feat2)
-    self.memories[node2].store(feat1)
+            if not neighbors:
+                break
+            
+            if len(path) > 1:
+                previous = path[-2]
+                neighbors = [n for n in neighbors if n != previous]
+            
+            if not neighbors:
+                break
 
+            best_neighbor = None
+            best_similarity = -float('inf')
 
-  def navigate(self, start_node, cue, steps = 3):
-    path = [start_node]
-    current = start_node
-    current_cue = cue
+            for neighbor in neighbors:
+                neighbor_feat = self.graph.nodes[neighbor]['feature']
+                similarity = np.dot(neighbor_feat, recalled) / (np.linalg.norm(neighbor_feat) * np.linalg.norm(recalled) + 1e-8)
+                
+                if neighbor in path:
+                    similarity *= 0.3
+                
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_neighbor = neighbor
 
-    for _ in range(steps):
-      recalled = self.memories[current].recall(current_cue)
-      neighbors = list(self.graph.neighbors(current))
+            if best_neighbor is None:
+                break
 
-      if not neighbors:
-        break
+            path.append(best_neighbor)
+            current = best_neighbor
+            current_cue = recalled
 
-      best_neighbor = None
-      best_similarity = -float('inf')
-
-      for neighbor in neighbors:
-        neighbor_feat = self.graph.nodes[neighbor]['feature']
-        similarity = np.dot(neighbor_feat, recalled) / (np.linalg.norm(neighbor_feat) * np.linalg.norm(recalled))
-
-        if similarity > best_similarity:
-          best_similarity = similarity
-          best_neighbor = neighbor
-
-      path.append(best_neighbor)
-      current = best_neighbor
-      current_cue = recalled
-
-    return path
+        return path
