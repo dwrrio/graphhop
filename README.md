@@ -1,3 +1,3 @@
 # GraphHop
 
-<img width="894" height="303" alt="image" src="https://github.com/user-attachments/assets/55c8fadf-fcb3-4a0b-b873-d1c8413abcc9" />
+<img width="894" height="287" alt="image" src="https://github.com/user-attachments/assets/6f1c01f5-9d76-410c-9d57-7d6d9bc270f0" />
